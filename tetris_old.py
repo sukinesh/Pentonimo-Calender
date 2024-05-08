@@ -2,7 +2,6 @@
 import sys
 import itertools
 import datetime
-import calendar
 
 grid = [[0,0,0,0,0,0,1],[0,0,0,0,0,0,1], [0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,1,1,1,1] ]
 mPo = [0,0]
@@ -10,7 +9,7 @@ dPo = [2,0]
 # grid = [[0,1,0,0,1,0,1],[1,0,1,1,0,0,1], [0,1,0,0,1,0,0],[0,0,1,1,0,0,0],[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,1,1,1,1] ]
 
 def getStartPointInRow(row,sc):
-    # print(row,sc)
+    print(row,sc)
     for column in range(7-(sc)):
         # print(column)
         try:
@@ -40,6 +39,8 @@ def cellChecker(rowId, columnId):
 
 def gridChecker():
     holes = []
+
+
     for rowId ,row in enumerate(grid):
         for columnId,cell in enumerate(row):
             if(cell == 0):
@@ -115,6 +116,12 @@ def getFilledDate(holes):
     print(month,' ',date)
     return f'{month}-{date}'
 
+# def getHolesOfDate(month,date):
+#     monthPos = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5]]
+#     mPo = monthPos[month - 1]
+#     dPo = [date/7, date - date/7]
+#     return mPO, dPo
+
     
 
 class Polyominoe:
@@ -124,9 +131,33 @@ class Polyominoe:
         self.color = color
         self.elementOffset = elementOffset
 
+    # def rotate(self):
+    #     temp = self.shape
+    #     self.shape = []
+    #     for j in range(len(temp[0])):
+    #         self.shape.append([None]*len(temp))
+    #     for i in range(len(temp)):
+    #         for j in range(len(temp[i])):
+    #             self.shape[j][i] = temp[len(temp)-(i+1)][j]
+    #     #print(temp,self.shape)        
+
+    # def flip(self):
+    #     temp = self.shape
+    #     self.shape = []
+    #     for j in range(len(temp)):
+    #         self.shape.append([None]*len(temp[0]))
+    #     for i in range(len(temp)):
+    #         for j in range(len(temp[i])):
+    #             self.shape[i][j] = temp[i][len(temp[i])-(j+1)]
+    #     #print(temp,self.shape)      
 
     def fitInGrid(self,start,transform):
 
+        # for t in transform:
+        #     if (t == "f"):
+        #         self.flip()
+        #     elif (t == "r"):
+        #         self.rotate()
         
         def fitter(fitted=0):
             # print(start)
@@ -291,16 +322,25 @@ def arrangeTetrominos(currentOrder = ['z6', 'b3', 't7', 'f4', 'c1', 'l0', 'o1', 
         # print(element.name,nextStartPoint,'start point')
         # print(i)
         # display()
-        # print(nextStartPoint)
+        print(nextStartPoint)
         # print('--------------------')
 
+        #if testing for any date
+        # holes = gridChecker()
+        # print(holes)
+        # if(nextStartPoint == 'impossible' or len(holes) > 2 or holesInMonths(holes)>1 or noHoleInMonths()):
+        #     # print("\033[1;45m IMPOSSIBLE COMBO \033[0m")
+        #     # display()
+        #     if nextStartPoint == 'impossible' : return i-1
+        #     return i
+
+        #if arranging for specific date
         # if(nextStartPoint == 'impossible'): print('impossible')
         # if(gridHasHoles(nextStartPoint)): print('holes')
         if(nextStartPoint == 'impossible' ):
             return i-1
         elif(nextStartPoint == "nomorestart"):
-            if(i== 7): break
-            else: return i
+            break
         else:
             if(gridHasHoles(nextStartPoint)):
                 # display()
@@ -311,6 +351,10 @@ def arrangeTetrominos(currentOrder = ['z6', 'b3', 't7', 'f4', 'c1', 'l0', 'o1', 
     
     display()
     # print('success')
+    # testing all dates
+    # return i,holes
+
+    # specific date 
     return i
 
 
@@ -327,26 +371,33 @@ z0 = [ 'z0' , 'z1' , 'z2' , 'z3' , 'z4' , 'z5' , 'z6' , 'z7']
 
 count = 0 
 backStep = 0 
-solution = False
 def permutations(elements =['b3', 'c1', 'f4', 'l0', 'o1', 's0', 't7', 'z6'], current_permutation = []):
     global count
     global backStep
-    global solution
 
     if len(elements) == 0:
         count+=1
-        # print(current_permutation)
+        print(current_permutation)
 
+        #all dates 
+        # arrangeResult = arrangeTetrominos(current_permutation) 
+        # if isinstance(arrangeResult, tuple) and len(arrangeResult) == 2:
+        #     blocksFixed , holes = arrangeResult
+        # else:
+        #     blocksFixed = arrangeResult
+
+        # specific date
         blocksFixed = arrangeTetrominos(current_permutation) 
 
         # print(blocksFixed+1, ' blocks')
         backStep = 6 - blocksFixed
-
+        # with open('output.txt', 'a') as f:
+        #     f.write(f"{', '.join(current_permutation)} - {blocksFixed+1}\n")
         if(blocksFixed == 7):
             realDate = getFilledDate([mPo,dPo])
             with open('success.txt', 'a') as f:
                 f.write(f"{', '.join(current_permutation)} - {realDate}\n")
-            solution = True
+        # print(f"{', '.join(current_permutation)} - {blocksFixed+1}\n")
         # display()
         # input()
     else:
@@ -357,29 +408,57 @@ def permutations(elements =['b3', 'c1', 'f4', 'l0', 'o1', 's0', 't7', 'z6'], cur
             new_permutation = current_permutation + [elements[i]]
             remaining_elements = elements[:i] + elements[i+1:]
             permutations(remaining_elements, new_permutation)
+
+    # return count
     
 
 def Combinations():
     global count
-    grid = [[0,0,0,0,0,0,1],[0,0,0,0,0,0,1], [0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,1,1,1,1] ]
-
     combinations = list(itertools.product(b0 , c0, f0, l0, o0, s0, t0, z0))
     for comb in combinations:
         permutations(comb)
-        # print(solution)
-        if(solution): break
         print(comb,' - ',count)
         count = 0
+        # with open('seq_list.txt', 'a') as f:
+        #     f.write(f"{comb}\n")
         # input()
 
+def combFromFile():
+    global count
+    startTime = datetime.datetime.now()
+    with open('combinations.txt', 'r') as file:
+        combinations = file.readlines()
+        for i in range(400000,524288):
+            combination = combinations[i].strip().split(',')
+            noOfPerm = permutations(combination)
+            print(i, 'comb', noOfPerm,'perms')
+            # with open('output.txt', 'a') as f:
+            #     f.write(f"{combination} - {noOfPerm}\n")
+            # print(f"{combination} - {noOfPerm}\n")
+            count = 0
+
+
+    endTime = datetime.datetime.now()
+    processTime = endTime - startTime
+    print(processTime)
+
+def testTetroBlock():
+    for tetro in z:
+        global grid
+        grid = [[0,0,0,0,0,0,1],[0,0,0,0,0,0,1], [0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,1,1,1,1] ] 
+
+        tetro.fitInGrid([0,0],"")
+        display()
+
+def testPerms():
+    with open('test.txt', 'r') as file:
+        perms = file.readlines()
+        for i in range(0,6):
+            current_permutation = perms[i].strip().split(',')
+            arrangeResult = arrangeTetrominos(current_permutation) 
 
 def getSolutionForDate(month,date):
     global mPo, dPo
-    global solution
-    global grid
-
-    grid = [[0,0,0,0,0,0,1],[0,0,0,0,0,0,1], [0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,1,1,1,1] ]
-
     monthPos = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5]]
     mPo = monthPos[month - 1]
     dPo = [date//7+2, date%7-1]
@@ -388,18 +467,8 @@ def getSolutionForDate(month,date):
     # grid[mPo[0]][mPo[1]]=1
     # grid[dPo[0]][dPo[1]]=1
     print(grid)
-    # display()
-
-    solution = False
+    display()
     Combinations()
-
-def eachDayAnswers():
-    for month in range(12):
-        lastDay = calendar.monthrange(2024,month+1)[1]
-        for day in range(lastDay):
-            print(month+1,day+1)
-            getSolutionForDate(month+1,day+1)
-
 
 
 def testOutputFile():
@@ -411,10 +480,14 @@ def testOutputFile():
 
 
 
-
+# testTetroBlock()
 # Combinations()
+# combFromFile()
 # permutations()
-# getSolutionForDate(2,4)
-# print(arrangeTetrominos())
+# gridChecker()
+# getFilledDate([[1,3],[4,4]])
+# testPerms()
+# noHoleInMonths()
+# getSolutionForDate(1,1)
+print(arrangeTetrominos())
 # testOutputFile()
-eachDayAnswers()
