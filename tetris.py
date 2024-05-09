@@ -3,6 +3,7 @@ import sys
 import itertools
 import datetime
 import calendar
+from PIL import Image, ImageDraw , ImageFont
 
 grid = [[0,0,0,0,0,0,1],[0,0,0,0,0,0,1], [0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,1,1,1,1] ]
 mPo = [0,0]
@@ -24,40 +25,40 @@ def getStartPointInRow(row,sc):
 def cellChecker(rowId, columnId):
     sideBlock =0 
     sides = [0,0,0,0]
-    freeSide = [0,0]
+    freeSides = []
     if (rowId    == 0 or grid[rowId-1][columnId] != 0 ): sides[0] =1
-    else: freeSide = [rowId-1 , columnId]
+    else: freeSides.append([rowId-1 , columnId])
     if (columnId == 0 or grid[rowId][columnId-1] != 0 ): sides[1] =1
-    else: freeSide = [rowId , columnId-1]
+    else: freeSides.append([rowId , columnId-1])
     if (rowId    == 6 or grid[rowId+1][columnId] != 0 ): sides[2] =1
-    else: freeSide = [rowId+1 , columnId]
+    else: freeSides.append([rowId+1 , columnId])
     if (columnId == 6 or grid[rowId][columnId+1] != 0 ): sides[3] =1
-    else: freeSide = [rowId , columnId+1]
+    else: freeSides.append([rowId , columnId+1])
 
     for cell in sides: sideBlock+=cell 
     
-    return sideBlock, freeSide
+    return sideBlock, freeSides
 
 def gridChecker():
     holes = []
     for rowId ,row in enumerate(grid):
         for columnId,cell in enumerate(row):
             if(cell == 0):
-                sideBlock, freeSide = cellChecker(rowId, columnId)
+                sideBlock, freeSides = cellChecker(rowId, columnId)
 
                 #if blocked 4 sides - hole
                 if(sideBlock==4):
                     holes.append([rowId,columnId])
                 #if 2 cells blocked 3 sides each - 2 holes
                 elif(sideBlock==3):
-                    blocks , otherSide = cellChecker(freeSide[0],freeSide[1])
+                    blocks , otherSide = cellChecker(freeSides[0],freeSides[1])
                     if(blocks == 3): holes.append([rowId,columnId])
                     elif(blocks == 2): 
                         othersBlock = cellChecker(otherSide[0],otherSide[1])[0]
                         # print(othersBlock)
                         if(othersBlock == 3): 
                             holes.append([rowId,columnId])
-                            if freeSide not in holes: holes.append(freeSide)
+                            if freeSides not in holes: holes.append(freeSides)
 
     # print(len(holes), ' holes')
     return holes
@@ -68,6 +69,7 @@ def gridHasHoles(startPoint):
     for rowId ,row in enumerate(grid):
         for columnId,cell in enumerate(row):
             if(cell == 0):
+                # print(rowId,columnId," is 0")
                 if(rowId<startPoint[0]):
                     # print('0 bfr start row')
                     return True
@@ -75,21 +77,29 @@ def gridHasHoles(startPoint):
                     # print('0 bfr start column')
                     return True
 
-                sideBlock, freeSide = cellChecker(rowId, columnId)
+                sideBlock, freeSides = cellChecker(rowId, columnId)
+
+                # print(sideBlock,freeSides)
+
+
 
                 #if blocked 4 sides - hole
                 if(sideBlock==4):
                     return True
                 #if 2 cells blocked 3 sides each - 2 holes
                 elif(sideBlock==3):
-                    blocks , otherSide = cellChecker(freeSide[0],freeSide[1])
+                    blocks , otherSide = cellChecker(freeSides[0][0],freeSides[0][1])
+                    # print(blocks,otherSide)
                     if(blocks == 3): return True
-                    elif(blocks == 2): 
-                        othersBlock = cellChecker(otherSide[0],otherSide[1])[0]
+                    elif(blocks == 2):
+                        if(otherSide[0]==[rowId,columnId]):
+                            othersBlock = cellChecker(otherSide[1][0],otherSide[1][1])[0]
+                        else:
+                            othersBlock = cellChecker(otherSide[0][0],otherSide[0][1])[0]
                         # print(othersBlock)
                         if(othersBlock == 3): 
                             return True
-                            if freeSide not in holes: holes.append(freeSide)
+                            if freeSides not in holes: holes.append(freeSides)
 
     return False
 
@@ -255,28 +265,54 @@ z = [
     ]
 
 
-def display():    
+# def display():    
+#     for row in range(7):
+#         # print("\033[40m",end="")
+#         for column in range(7): 
+#             if(grid[row][column] != 0):
+#                 print(f"\033[1;{grid[row][column]}m",end="")
+#                 if(grid[row][column] == 1):
+#                     print ('#',end=" ")
+#                 else:
+#                     print(' ',end=" ")
+#                 # print("\033[0m",end="")
+#             else:
+#                 # print(f"\033[40m",end="")
+#                 print(" ", end =" ")  
+#             # print (' ',end=" ")
+#             print("\033[0m",end="")
+#         print("\033[0m")
+#     print("\033[0m")
+
+def display():  
+    colors = ['blue','yellow','green','lightblue','pink','red','grey','violet']
+    image = Image.new("RGB", (800, 850), "white")
+
+    # Create a draw object
+    draw = ImageDraw.Draw(image)
+
     for row in range(7):
         # print("\033[40m",end="")
         for column in range(7): 
             if(grid[row][column] != 0):
-                print(f"\033[1;{grid[row][column]}m",end="")
+                # Define the coordinates of the square
+                x0, y0 = (column * 100)+50, (row * 100) + 50
+                x1, y1 = ((column +1) * 100)+50, ((row +1) * 100)+50
                 if(grid[row][column] == 1):
-                    print ('#',end=" ")
+                    # Draw the square
+                    draw.rectangle([x0, y0, x1, y1], fill="black")
                 else:
-                    print(' ',end=" ")
-                # print("\033[0m",end="")
-            else:
-                # print(f"\033[40m",end="")
-                print(" ", end =" ")  
-            # print (' ',end=" ")
-            print("\033[0m",end="")
-        print("\033[0m")
-    print("\033[0m")
-    
+                    # Draw the square
+                    color = grid[row][column] - 40
+                    draw.rectangle([x0, y0, x1, y1], fill=colors[color])
+
+    font = ImageFont.truetype("arialbd.ttf",24)
+    draw.text((380,790), "Jan 1",fill="black", font = font)
+    # Save the image
+    image.save("pic/square.png")
+
 
 def arrangeTetrominos(currentOrder = ['z6', 'b3', 't7', 'f4', 'c1', 'l0', 'o1', 's0']):
-# def arrangeTetrominos(currentOrder = ['t0', 'f1', 'b1', 'z1', 's0', 'c3', 'l3', 'o1']):
     global grid
     grid = [[0,0,0,0,0,0,1],[0,0,0,0,0,0,1], [0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,1,1,1,1] ] 
 
@@ -302,7 +338,9 @@ def arrangeTetrominos(currentOrder = ['z6', 'b3', 't7', 'f4', 'c1', 'l0', 'o1', 
             if(i== 7): break
             else: return i
         else:
+            # print(gridHasHoles(nextStartPoint))
             if(gridHasHoles(nextStartPoint)):
+                # print('holes')
                 # display()
                 return i
 
@@ -403,18 +441,29 @@ def eachDayAnswers():
 
 
 def testOutputFile():
+    global mPo,dPo
     with open('success.txt', 'r') as file:
         results = file.readlines()
-        for order in results:
-            print(order.split('-')[0].strip().split(', '))
-            arrangeTetrominos(order.split('-')[0].strip().split(', '))
+        months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+        monthPos = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5]]
+        for line in results:
+            order = line.split('-')[0].strip().split(', ')
+            month = line.split('-')[1].strip()
+            date  = int(line.split('-')[2])
+            mPo = monthPos[months.index(month)]
+            dPo = [date//7+2, date%7-1]
+
+            print(month,date)
+            print(order)
+            arrangeTetrominos(order)
+            # input()
 
 
 
 
 # Combinations()
 # permutations()
-# getSolutionForDate(2,4)
-# print(arrangeTetrominos())
+# getSolutionForDate(1,1)
+print(arrangeTetrominos(['t5', 'z1', 'c2', 'b0', 's0', 'l3', 'f1', 'o1'])) 
 # testOutputFile()
-eachDayAnswers()
+# eachDayAnswers()
