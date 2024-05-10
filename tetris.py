@@ -285,7 +285,7 @@ def display():
         print("\033[0m")
     print("\033[0m")
 
-def drawer(month,today):  
+def drawer(month,today,dayNo):  
     #-----------B----------C-----F--------L---------O---------S---------T----------Z
     colors = ['#0092ff' ,'red','#0f4','#812cc0','#f60','#fc51c2','#fffb01','#0050ff']
     image = Image.new("RGB", (800, 850), "#CE9C6D")
@@ -323,7 +323,7 @@ def drawer(month,today):
 
     draw.text((380,790), (str (month)+" "+str(today)) ,fill="black", font = font)
     # Save the image
-    image.save("pic/"+str (month)+" "+str(today)+".png")
+    image.save("mob/"+str(dayNo)+".png")
 
 
 def arrangeTetrominos(currentOrder = ['z6', 'b3', 't7', 'f4', 'c1', 'l0', 'o1', 's0']):
@@ -461,7 +461,7 @@ def testOutputFile():
         results = file.readlines()
         months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
         monthPos = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,0],[1,1],[1,2],[1,3],[1,4],[1,5]]
-        for line in results:
+        for i,line in enumerate(results):
             order = line.split('-')[0].strip().split(', ')
             month = line.split('-')[1].strip()
             date  = int(line.split('-')[2])
@@ -472,7 +472,7 @@ def testOutputFile():
             print(month,date)
             print(order)
             arrangeTetrominos(order)
-            drawer(month,date)
+            drawer(month,date,i+1)
             # input()
 
 
