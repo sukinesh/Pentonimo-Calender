@@ -472,7 +472,7 @@ def testOutputFile():
             print(month,date)
             print(order)
             arrangeTetrominos(order)
-            drawer(month,date,i+1)
+            # drawer(month,date,i+1)
             # input()
 
 
@@ -480,8 +480,8 @@ def testOutputFile():
 
 # Combinations()
 # permutations()
-# getSolutionForDate(1,7)
+getSolutionForDate(1,7)
 # print(arrangeTetrominos(['t5', 'z1', 'c2', 'b0', 's0', 'l3', 'f1', 'o1'])) 
-testOutputFile()
+# testOutputFile()
 # eachDayAnswers()
 # drawer()
